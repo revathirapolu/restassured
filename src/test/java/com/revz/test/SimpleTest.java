@@ -24,8 +24,10 @@ public class SimpleTest {
     private static WireMockServer wireMockServer = new WireMockServer(PORT);
 
     private static final String EVENTS_PATH = "/events?id=390";
+    private static final String EVENTS_PATH1 = "/event1?id=390";
     private static final String APPLICATION_JSON = "application/json";
-    private static final String GAME_ODDS = getEventJson();
+    private static final String GAME_ODDS = getEventJson("/event_0.json");
+    private static final String GAME_ODDS1 = getEventJson("/event_1.json");
 
 
     @BeforeClass
@@ -34,6 +36,11 @@ public class SimpleTest {
         RestAssured.port = PORT;
         configureFor("localhost", PORT);
         stubFor(get(urlEqualTo(EVENTS_PATH)).willReturn(
+                aResponse().withStatus(200)
+                        .withHeader("Content-Type", APPLICATION_JSON)
+                        .withBody(GAME_ODDS)));
+
+        stubFor(get(urlEqualTo(EVENTS_PATH1)).willReturn(
                 aResponse().withStatus(200)
                         .withHeader("Content-Type", APPLICATION_JSON)
                         .withBody(GAME_ODDS)));
@@ -49,7 +56,7 @@ public class SimpleTest {
     @Test
     public void givenUrl_whenSuccessOnGetsResponseAndJsonHasRequiredKV_thenCorrect() {
 
-        get("/events?id=390").then().statusCode(200).assertThat()
+        get("/event1?id=390").then().statusCode(200).assertThat()
                 .body("id", equalTo("390"));
     }
 
@@ -60,9 +67,9 @@ public class SimpleTest {
                 .body("data.countryId", equalTo(35));
     }
 
-    private static String getEventJson() {
+    private static String getEventJson(String filename) {
         String json = inputStreamToString(
-                SimpleTest.class.getResourceAsStream("/event_0.json"));
+                SimpleTest.class.getResourceAsStream(filename));
         System.out.println(json);
         return json;
     }
